@@ -7,10 +7,21 @@ from pyzbar import pyzbar
 import cv2
 import logging
 import requests
+from conf import ws_addr
+import json
+from base64 import b64encode
+
+def send_barcode(jpg_file, barcode_data):
+    logging.info('sending file to service.')
+    with open(jpg_file, 'rb') as f:
+        base64_bytes = b64encode(f.read())
+        base64_string = base64_bytes.decode('utf-8')
+        # r = requests.post(ws_addr["ws_address"], data={'barcode': barcode_data}, files={'file': f.read()})
+        r = requests.post(ws_addr["ws_address"], data=json.dumps({'barcode': barcode_data, 'file': base64_string}))
+        logging.info('service response: ' + str(r))
 
 
 def read_files():
-
     os.chdir("./")
     orders = glob.glob("*.jpg")
     logging.info('total files: ' + str(len(orders)))
@@ -41,7 +52,7 @@ def read_files():
         else:
             total_recognized += 1
             logging.info("barcode data: " + barcode_data)
-
+            send_barcode(jpgfile, barcode_data)
 
     logging.info('recognized files: ' + str(total_recognized))
     logging.info("qrtools recognized: " + str(qrtools_recognized))
@@ -53,4 +64,3 @@ if __name__ == "__main__":
     logging.info('start reading.')
     read_files()
     logging.info('done reading.')
-
