@@ -19,6 +19,7 @@ def send_barcode(jpg_file, barcode_data):
         # r = requests.post(ws_addr["ws_address"], data={'barcode': barcode_data}, files={'file': f.read()})
         r = requests.post(ws_addr["ws_address"], data=json.dumps({'barcode': barcode_data, 'file': base64_string}))
         logging.info('service response: ' + str(r))
+        
 
 
 def read_files():
