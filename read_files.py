@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import urllib
 
 import qrtools
 import glob
@@ -8,18 +9,25 @@ import cv2
 import logging
 import requests
 from conf import ws_addr
+from conf import nu_addr
 import json
 from base64 import b64encode
+import os
+import urlparse
 
 def send_barcode(jpg_file, barcode_data):
     logging.info('sending file to service.')
     with open(jpg_file, 'rb') as f:
         base64_bytes = b64encode(f.read())
         base64_string = base64_bytes.decode('utf-8')
-        # r = requests.post(ws_addr["ws_address"], data={'barcode': barcode_data}, files={'file': f.read()})
         r = requests.post(ws_addr["ws_address"], data=json.dumps({'barcode': barcode_data, 'file': base64_string}))
         logging.info('service response: ' + str(r))
-        
+        response = r.json()
+        if response['result']:
+            os.remove(jpg_file)
+            logging.info('deleted recognized file')
+        else:
+            logging.info('file not_recognized: ' + jpg_file)
 
 
 def read_files():
@@ -64,4 +72,7 @@ if __name__ == "__main__":
     logging.basicConfig(filename='barcodes.log', level=logging.INFO, format='%(levelname)-8s [%(asctime)s] %(message)s')
     logging.info('start reading.')
     read_files()
+    payload = {'role': 'Ответственный за загрузку заказов КиС', 'user': ''}
+    headers = {'Content-Type': 'application/text;charset=UTF-8'}
+    r = requests.get(nu_addr["nu_address"], params=payload, headers=headers)
     logging.info('done reading.')
