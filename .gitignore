@@ -37,3 +37,6 @@ ehthumbs.db
 Thumbs.db
 *.jpg
 conf.py
+conf.pyc
+.idea/
+.idea/workspace.xml
