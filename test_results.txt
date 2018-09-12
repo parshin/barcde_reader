@@ -1,0 +1,42 @@
+200
+total files: 34
+recognized files: 28
+qrtools recognized: 28
+pyzbar recognized: 0
+zxing recognized: 0
+percent : 82.0
+
+100
+total files: 34
+recognized files: 32
+qrtools recognized: 32
+pyzbar recognized: 0
+zxing recognized: 0
+percent : 94.0
+
+pyzbar
+100
+total files: 34
+recognized files: 32
+qrtools recognized: 0
+pyzbar recognized: 32
+zxing recognized: 0
+percent : 94.0
+
+
+zxing
+100
+total files: 34
+recognized files: 17
+qrtools recognized: 0
+pyzbar recognized: 0
+zxing recognized: 17
+percent : 50.0
+
+300
+total files: 34
+recognized files: 26
+qrtools recognized: 22
+pyzbar recognized: 4
+zxing recognized: 0
+percent : 76.0

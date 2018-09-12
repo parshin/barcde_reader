@@ -22,10 +22,10 @@ def send_barcode(jpg_file, barcode_data):
     with open(jpg_file, 'rb') as f:
         base64_bytes = b64encode(f.read())
         base64_string = base64_bytes.decode('utf-8')
-        r = requests.post(ws_addr["ws_address"], data=json.dumps({'barcode': barcode_data, 'file': base64_string}))
+        r = requests.post(ws_addr["ws_address"], data=json.dumps({"barcode": barcode_data, "file": base64_string}))
         logging.info('service response: ' + str(r))
         response = r.json()
-        if response['result']:
+        if response["result"]:
             os.remove(jpg_file)
             logging.info('deleted recognized file')
         else:
@@ -37,14 +37,14 @@ def pdf_to_jpg():
     pdf_files = glob.glob("*.pdf")
 
     for pdf_file in pdf_files:
-        convert_from_path(pdf_file, 200, output_folder="./", fmt='jpg')
+        convert_from_path(pdf_file, 200, output_folder="./jpg", fmt='jpg')
 
 
 def read_files():
     global total_files
     global recognized_files
 
-    os.chdir("./")
+    os.chdir("./jpg")
     orders = glob.glob("*.jpg")
     total_files = len(orders)
     logging.info('total files: ' + str(total_files))
@@ -79,6 +79,8 @@ def read_files():
     logging.info('recognized files: ' + str(recognized_files))
     logging.info("qrtools recognized: " + str(qrtools_recognized))
     logging.info("pyzbar recognized: " + str(pyzbar_recognized))
+    if total_files > 0:
+        logging.info("percent : " + str(round(recognized_files*100/total_files, 2)))
 
 
 if __name__ == "__main__":
