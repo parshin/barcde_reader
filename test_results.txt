@@ -40,3 +40,19 @@ qrtools recognized: 22
 pyzbar recognized: 4
 zxing recognized: 0
 percent : 76.0
+
+gray
+total files: 41
+recognized files: 6
+qrtools recognized: 6
+pyzbar recognized: 0
+zxing recognized: 0
+percent : 14.0
+
+color
+total files: 55
+recognized files: 6
+qrtools recognized: 5
+pyzbar recognized: 0
+zxing recognized: 1
+percent : 10.0

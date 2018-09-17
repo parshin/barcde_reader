@@ -12,9 +12,37 @@ import json
 from base64 import b64encode
 import os
 from pdf2image import convert_from_path
+import shutil
+from PIL import Image, ImageEnhance
 
 total_files = 0
 recognized_files = 0
+# qrtools_recognized = 0
+# pyzbar_recognized = 0
+
+
+def read_qrtools(jpgfile):
+    global qrtools_recognized
+    result = "NULL"
+    qr = qrtools.QR()
+    qr.decode(jpgfile)
+    result = qr.data
+    # if result != "NULL":
+    #     qrtools_recognized += 1
+
+    return result
+
+
+# def read_pyzbar(jpgfile):
+#     global pyzbar_recognized
+#     result = "NULL"
+#     im = cv2.imread(jpgfile)
+#     barcodes = pyzbar.decode(im)
+#     for barcode in barcodes:
+#         result = barcode.data
+#         pyzbar_recognized += 1
+#
+#     return result
 
 
 def send_barcode(jpg_file, barcode_data):
@@ -26,69 +54,86 @@ def send_barcode(jpg_file, barcode_data):
         logging.info('service response: ' + str(r))
         response = r.json()
         if response["result"]:
-            os.remove(jpg_file)
+            # os.remove(jpg_file)
+            shutil.move(jpg_file, "./done/"+jpg_file)
             logging.info('deleted recognized file')
         else:
             logging.info('file not_recognized: ' + jpg_file)
 
 
-def pdf_to_jpg():
-    os.chdir("./")
+def pdf_to_jpg(dpi=100):
+    os.chdir("/home/parshin/PycharmProjects/barcode_reader/pdf")
     pdf_files = glob.glob("*.pdf")
 
     for pdf_file in pdf_files:
-        convert_from_path(pdf_file, 200, output_folder="./jpg", fmt='jpg')
+        convert_from_path(pdf_file, dpi, output_folder="/home/parshin/PycharmProjects/barcode_reader/jpg/", fmt='jpg')
+
+
+def enhance_img(jpg_file):
+    image = Image.open(jpg_file)
+
+    w, h = image.size
+    left, top, right, bottom = 0, 0, w, 150
+    image = image.crop((left, top, right, bottom))
+
+    image = ImageEnhance.Contrast(image)
+    image = image.enhance(3)
+
+    image.save("/home/parshin/PycharmProjects/barcode_reader/cropped/"+jpg_file)
+
+    barcode_data = read_qrtools("/home/parshin/PycharmProjects/barcode_reader/cropped/"+jpg_file)
+
+    if barcode_data == "NULL":
+        image = ImageEnhance.Sharpness(image)
+        image = image.enhance(0)
+        image.save("/home/parshin/PycharmProjects/barcode_reader/cropped/" + jpg_file)
+
+    barcode_data = read_qrtools("/home/parshin/PycharmProjects/barcode_reader/cropped/" + jpg_file)
+
+    os.remove("/home/parshin/PycharmProjects/barcode_reader/cropped/"+jpg_file)
+    return barcode_data
 
 
 def read_files():
     global total_files
     global recognized_files
 
-    os.chdir("./jpg")
+    os.chdir("/home/parshin/PycharmProjects/barcode_reader/jpg/")
     orders = glob.glob("*.jpg")
     total_files = len(orders)
-    logging.info('total files: ' + str(total_files))
 
-    qrtools_recognized = 0
-    pyzbar_recognized = 0
-
-    for jpgfile in orders:
-        logging.info(jpgfile)
+    for jpg_file in orders:
+        logging.info(jpg_file)
         barcode_data = "NULL"
 
-        qr = qrtools.QR()
-        qr.decode(jpgfile)
-        barcode_data = qr.data
+        barcode_data = read_qrtools(jpg_file)
+
+        # if barcode_data == "NULL":
+        #     barcode_data = read_pyzbar(jpgfile)
 
         if barcode_data == "NULL":
-            im = cv2.imread(jpgfile)
-            barcodes = pyzbar.decode(im)
-            for barcode in barcodes:
-                barcode_data = barcode.data
-                pyzbar_recognized += 1
-        else:
-            qrtools_recognized += 1
+            barcode_data = enhance_img(jpg_file)
 
         if barcode_data == "NULL":
             logging.info("barcode wasn't recognized!")
         else:
             recognized_files += 1
             logging.info("barcode data: " + barcode_data)
-            send_barcode(jpgfile, barcode_data)
-
-    logging.info('recognized files: ' + str(recognized_files))
-    logging.info("qrtools recognized: " + str(qrtools_recognized))
-    logging.info("pyzbar recognized: " + str(pyzbar_recognized))
-    if total_files > 0:
-        logging.info("percent : " + str(round(recognized_files*100/total_files, 2)))
+            # send_barcode(jpgfile, barcode_data)
 
 
 if __name__ == "__main__":
     logging.basicConfig(filename='barcodes.log', level=logging.INFO, format='%(levelname)-8s [%(asctime)s] %(message)s')
     logging.info('start reading.')
+
     pdf_to_jpg()
     read_files()
+
+    logging.info('total files: ' + str(total_files))
+    logging.info('recognized files: ' + str(recognized_files))
+
     if total_files > 0:
+        logging.info("percent : " + str(round(recognized_files * 100 / total_files, 2)))
         payload = {'role': 'Ответственный за загрузку заказов КиС',
                    'user': '',
                    'total_files': total_files,
