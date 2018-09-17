@@ -2,8 +2,8 @@
 
 import qrtools
 import glob
-from pyzbar import pyzbar
-import cv2
+# from pyzbar import pyzbar
+# import cv2
 import logging
 import requests
 from conf import ws_addr
@@ -22,15 +22,15 @@ recognized_files = 0
 
 
 def read_qrtools(jpgfile):
-    global qrtools_recognized
-    result = "NULL"
+    # global qrtools_recognized
+    # result = "NULL"
     qr = qrtools.QR()
     qr.decode(jpgfile)
-    result = qr.data
+    return qr.data
     # if result != "NULL":
     #     qrtools_recognized += 1
 
-    return result
+    # return result
 
 
 # def read_pyzbar(jpgfile):
