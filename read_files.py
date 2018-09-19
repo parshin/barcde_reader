@@ -52,13 +52,18 @@ def send_barcode(jpg_file, barcode_data):
         base64_string = base64_bytes.decode('utf-8')
         r = requests.post(ws_addr["ws_address"], data=json.dumps({"barcode": barcode_data, "file": base64_string}))
         logging.info('service response: ' + str(r))
-        response = r.json()
-        if response["result"]:
-            # os.remove(jpg_file)
-            shutil.move(jpg_file, "./done/"+jpg_file)
-            logging.info('deleted recognized file')
-        else:
-            logging.info('file not_recognized: ' + jpg_file)
+        # noinspection PyBroadException
+        try:
+            response = r.json()
+            if response["result"]:
+                os.remove(jpg_file)
+                # shutil.move(jpg_file, "/home/parshin/PycharmProjects/barcode_reader/done/"+jpg_file)
+                logging.info('deleted recognized file')
+            else:
+                logging.info('file not_recognized: ' + jpg_file)
+        except Exception:
+            logging.error('response is not json: ' + str(r))
+
 
 
 def pdf_to_jpg(dpi=100):
@@ -119,7 +124,7 @@ def read_files():
         else:
             recognized_files += 1
             logging.info("barcode data: " + barcode_data)
-            # send_barcode(jpgfile, barcode_data)
+            send_barcode(jpg_file, barcode_data)
 
 
 if __name__ == "__main__":
