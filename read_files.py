@@ -12,7 +12,7 @@ import json
 from base64 import b64encode
 import os
 from pdf2image import convert_from_path
-import shutil
+# import shutil
 from PIL import Image, ImageEnhance
 
 total_files = 0
@@ -50,20 +50,20 @@ def send_barcode(jpg_file, barcode_data):
     with open(jpg_file, 'rb') as f:
         base64_bytes = b64encode(f.read())
         base64_string = base64_bytes.decode('utf-8')
-        r = requests.post(ws_addr["ws_address"], data=json.dumps({"barcode": barcode_data, "file": base64_string}))
-        logging.info('service response: ' + str(r))
+        response = requests.post(ws_addr["ws_address"],
+                                 data=json.dumps({"barcode": barcode_data, "file": base64_string}))
+        logging.info('service response: ' + str(response))
         # noinspection PyBroadException
         try:
-            response = r.json()
+            response = response.json()
             if response["result"]:
                 os.remove(jpg_file)
                 # shutil.move(jpg_file, "/home/parshin/PycharmProjects/barcode_reader/done/"+jpg_file)
-                logging.info('deleted recognized file')
+                # logging.info('deleted recognized file')
             else:
                 logging.info('file not_recognized: ' + jpg_file)
         except Exception:
-            logging.error('response is not json: ' + str(r))
-
+            logging.error('response is not json: ' + str(response))
 
 
 def pdf_to_jpg(dpi=100):
@@ -109,7 +109,7 @@ def read_files():
 
     for jpg_file in orders:
         logging.info(jpg_file)
-        barcode_data = "NULL"
+        # barcode_data = "NULL"
 
         barcode_data = read_qrtools(jpg_file)
 
@@ -123,7 +123,7 @@ def read_files():
             logging.info("barcode wasn't recognized!")
         else:
             recognized_files += 1
-            logging.info("barcode data: " + barcode_data)
+            # logging.info("barcode data: " + barcode_data)
             send_barcode(jpg_file, barcode_data)
 
 
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     logging.basicConfig(filename='barcodes.log', level=logging.INFO, format='%(levelname)-8s [%(asctime)s] %(message)s')
     logging.info('start reading.')
 
-    pdf_to_jpg()
+    # pdf_to_jpg()
     read_files()
 
     logging.info('total files: ' + str(total_files))
