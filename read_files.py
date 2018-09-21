@@ -2,64 +2,36 @@
 
 import qrtools
 import glob
-# from pyzbar import pyzbar
-# import cv2
 import logging
 import requests
-from conf import ws_addr
-from conf import nu_addr
+from conf import ws_address
+from conf import nu_address
 import json
 from base64 import b64encode
 import os
 from pdf2image import convert_from_path
-# import shutil
 from PIL import Image, ImageEnhance
 
 total_files = 0
 recognized_files = 0
-# qrtools_recognized = 0
-# pyzbar_recognized = 0
 
 
-def read_qrtools(jpgfile):
-    # global qrtools_recognized
-    # result = "NULL"
+def read_qrtools(jpg_file):
     qr = qrtools.QR()
-    qr.decode(jpgfile)
+    qr.decode(jpg_file)
     return qr.data
-    # if result != "NULL":
-    #     qrtools_recognized += 1
-
-    # return result
-
-
-# def read_pyzbar(jpgfile):
-#     global pyzbar_recognized
-#     result = "NULL"
-#     im = cv2.imread(jpgfile)
-#     barcodes = pyzbar.decode(im)
-#     for barcode in barcodes:
-#         result = barcode.data
-#         pyzbar_recognized += 1
-#
-#     return result
 
 
 def send_barcode(jpg_file, barcode_data):
-    logging.info('sending file to service.')
     with open(jpg_file, 'rb') as f:
         base64_bytes = b64encode(f.read())
         base64_string = base64_bytes.decode('utf-8')
-        response = requests.post(ws_addr["ws_address"],
+        response = requests.post(ws_address["ws_address"],
                                  data=json.dumps({"barcode": barcode_data, "file": base64_string}))
-        logging.info('service response: ' + str(response))
-        # noinspection PyBroadException
         try:
             response = response.json()
             if response["result"]:
                 os.remove(jpg_file)
-                # shutil.move(jpg_file, "/home/parshin/PycharmProjects/barcode_reader/done/"+jpg_file)
-                # logging.info('deleted recognized file')
             else:
                 logging.info('file not_recognized: ' + jpg_file)
         except Exception:
@@ -109,12 +81,8 @@ def read_files():
 
     for jpg_file in orders:
         logging.info(jpg_file)
-        # barcode_data = "NULL"
 
         barcode_data = read_qrtools(jpg_file)
-
-        # if barcode_data == "NULL":
-        #     barcode_data = read_pyzbar(jpgfile)
 
         if barcode_data == "NULL":
             barcode_data = enhance_img(jpg_file)
@@ -123,7 +91,6 @@ def read_files():
             logging.info("barcode wasn't recognized!")
         else:
             recognized_files += 1
-            # logging.info("barcode data: " + barcode_data)
             send_barcode(jpg_file, barcode_data)
 
 
@@ -131,7 +98,7 @@ if __name__ == "__main__":
     logging.basicConfig(filename='barcodes.log', level=logging.INFO, format='%(levelname)-8s [%(asctime)s] %(message)s')
     logging.info('start reading.')
 
-    # pdf_to_jpg()
+    pdf_to_jpg()
     read_files()
 
     logging.info('total files: ' + str(total_files))
@@ -143,5 +110,5 @@ if __name__ == "__main__":
                    'user': '',
                    'total_files': total_files,
                    'recognized_files': recognized_files}
-        r = requests.get(nu_addr["nu_address"], params=payload)
+        r = requests.get(nu_address["nu_address"], params=payload)
     logging.info('done reading.')
