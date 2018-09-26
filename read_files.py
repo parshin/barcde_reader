@@ -6,6 +6,7 @@ import logging
 import requests
 from conf import ws_address
 from conf import nu_address
+from conf import files_dir
 import json
 from base64 import b64encode
 import os
@@ -34,16 +35,16 @@ def send_barcode(jpg_file, barcode_data):
                 os.remove(jpg_file)
             else:
                 logging.info('file not_recognized: ' + jpg_file)
-        except Exception:
+        except IOError:
             logging.error('response is not json: ' + str(response))
 
 
 def pdf_to_jpg(dpi=100):
-    os.chdir("/home/parshin/PycharmProjects/barcode_reader/pdf")
+    os.chdir(files_dir["files_dir"])
     pdf_files = glob.glob("*.pdf")
 
     for pdf_file in pdf_files:
-        convert_from_path(pdf_file, dpi, output_folder="/home/parshin/PycharmProjects/barcode_reader/jpg/", fmt='jpg')
+        convert_from_path(pdf_file, dpi, output_folder=files_dir["files_dir"], fmt='jpg')
 
 
 def enhance_img(jpg_file):
@@ -56,18 +57,18 @@ def enhance_img(jpg_file):
     image = ImageEnhance.Contrast(image)
     image = image.enhance(3)
 
-    image.save("/home/parshin/PycharmProjects/barcode_reader/cropped/"+jpg_file)
+    image.save(files_dir["files_dir"] + "_cropped_" + jpg_file)
 
-    barcode_data = read_qrtools("/home/parshin/PycharmProjects/barcode_reader/cropped/"+jpg_file)
+    barcode_data = read_qrtools(files_dir["files_dir"] + "_cropped_" + jpg_file)
 
     if barcode_data == "NULL":
         image = ImageEnhance.Sharpness(image)
         image = image.enhance(0)
-        image.save("/home/parshin/PycharmProjects/barcode_reader/cropped/" + jpg_file)
+        image.save(files_dir["files_dir"] + "_cropped_" + jpg_file)
 
-    barcode_data = read_qrtools("/home/parshin/PycharmProjects/barcode_reader/cropped/" + jpg_file)
+    barcode_data = read_qrtools(files_dir["files_dir"] + "_cropped_" + jpg_file)
 
-    os.remove("/home/parshin/PycharmProjects/barcode_reader/cropped/"+jpg_file)
+    os.remove(files_dir["files_dir"] + "_cropped_"+jpg_file)
     return barcode_data
 
 
@@ -75,7 +76,7 @@ def read_files():
     global total_files
     global recognized_files
 
-    os.chdir("/home/parshin/PycharmProjects/barcode_reader/jpg/")
+    os.chdir(files_dir["files_dir"])
     orders = glob.glob("*.jpg")
     total_files = len(orders)
 
