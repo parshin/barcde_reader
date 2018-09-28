@@ -89,7 +89,7 @@ def read_files():
             barcode_data = enhance_img(jpg_file)
 
         if barcode_data == "NULL":
-            logging.info("barcode wasn't recognized!")
+            logging.info(jpg_file + "barcode wasn't recognized!")
         else:
             recognized_files += 1
             send_barcode(jpg_file, barcode_data)
