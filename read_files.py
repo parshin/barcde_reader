@@ -45,6 +45,7 @@ def pdf_to_jpg(dpi=100):
 
     for pdf_file in pdf_files:
         convert_from_path(pdf_file, dpi, output_folder=files_dir["files_dir"], fmt='jpg')
+        os.remove(pdf_file)
 
 
 def enhance_img(jpg_file):
